@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Whiteboard.app — Client-Side Visual Studio</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/canvas.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Top Application Bar -->
+    <header class="app-header" role="banner">
+      <div class="brand-section">
+        <img src="assets/logo.svg" alt="Whiteboard Logo" class="brand-logo">
+        <span class="brand-text" style="font-weight: 700; font-size: 1.1rem; color: var(--accent-primary);">Whiteboard.app</span>
+        <input type="text" id="board-title-input" class="board-title-input" value="Untitled Board" aria-label="Board Title" title="Click to rename board">
+        <div id="save-status" class="save-status-indicator" title="Local storage status">
+          <span class="status-dot"></span>
+          <span class="status-text">Saved locally</span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Undo / Redo -->
+        <button id="btn-undo" class="btn btn-icon btn-subtle" data-tooltip="Undo (Ctrl+Z)" aria-label="Undo" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+        </button>
+        <button id="btn-redo" class="btn btn-icon btn-subtle" data-tooltip="Redo (Ctrl+Y)" aria-label="Redo" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+        </button>
+
+        <div style="width: 1px; height: 24px; background: var(--border-subtle); margin: 0 4px;"></div>
+
+        <!-- Boards Manager -->
+        <button id="btn-boards" class="btn btn-subtle" data-tooltip="Manage Boards" aria-label="Boards">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>Boards</span>
+        </button>
+
+        <!-- Templates -->
+        <button id="btn-templates" class="btn btn-subtle" data-tooltip="Educational Templates" aria-label="Templates">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span>Templates</span>
+        </button>
+
+        <!-- Export Dropdown -->
+        <button id="btn-export-menu" class="btn btn-subtle" data-tooltip="Export Artwork" aria-label="Export">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Export</span>
+        </button>
+
+        <!-- Presentation Focus Mode -->
+        <button id="btn-presentation" class="btn btn-icon btn-subtle" data-tooltip="Presentation Mode" aria-label="Presentation Mode">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="btn-theme-toggle" class="btn btn-icon btn-subtle" data-tooltip="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="workspace-area">
+      <!-- Floating Tool Dock -->
+      <nav class="tool-dock" id="tool-dock" aria-label="Primary Drawing Tools">
+        <div class="tool-group">
+          <!-- Select -->
+          <button class="btn btn-icon active" data-tool="select" data-tooltip="Select & Transform (V)" data-tooltip-pos="right" aria-label="Select Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+          </button>
+          <!-- Pan / Hand -->
+          <button class="btn btn-icon" data-tool="hand" data-tooltip="Hand / Pan (H)" data-tooltip-pos="right" aria-label="Hand Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v9"/><path d="M18 11a2 2 0 0 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+          </button>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <div class="tool-group">
+          <!-- Pen -->
+          <button class="btn btn-icon" data-tool="pen" data-tooltip="Pen (P)" data-tooltip-pos="right" aria-label="Pen Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.5 7.5"/></svg>
+          </button>
+          <!-- Pencil -->
+          <button class="btn btn-icon" data-tool="pencil" data-tooltip="Sketch Pencil" data-tooltip-pos="right" aria-label="Pencil Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          </button>
+          <!-- Highlighter -->
+          <button class="btn btn-icon" data-tool="highlighter" data-tooltip="Highlighter" data-tooltip-pos="right" aria-label="Highlighter Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l-6 6v3h3l6-6"/><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+          </button>
+          <!-- Eraser -->
+          <button class="btn btn-icon" data-tool="eraser" data-tooltip="Eraser (E)" data-tooltip-pos="right" aria-label="Eraser Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8L13 3c.8-.8 2-.8 2.8 0l5.7 5.7c.8.8.8 2 0 2.8L12 20"/><path d="M18 12l-5 5"/></svg>
+          </button>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <div class="tool-group">
+          <!-- Line -->
+          <button class="btn btn-icon" data-tool="line" data-tooltip="Straight Line" data-tooltip-pos="right" aria-label="Line Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+          </button>
+          <!-- Arrow -->
+          <button class="btn btn-icon" data-tool="arrow" data-tooltip="Arrow" data-tooltip-pos="right" aria-label="Arrow Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/></svg>
+          </button>
+          <!-- Connector -->
+          <button class="btn btn-icon" data-tool="connector" data-tooltip="Connector" data-tooltip-pos="right" aria-label="Connector Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M5 7v4a2 2 0 0 0 2 2h8a2 2 0 0 1 2 2v4"/></svg>
+          </button>
+          <!-- Rectangle -->
+          <button class="btn btn-icon" data-tool="rectangle" data-tooltip="Rectangle (R)" data-tooltip-pos="right" aria-label="Rectangle Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          </button>
+          <!-- Ellipse -->
+          <button class="btn btn-icon" data-tool="ellipse" data-tooltip="Ellipse / Circle (O)" data-tooltip-pos="right" aria-label="Ellipse Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+          </button>
+          <!-- Triangle -->
+          <button class="btn btn-icon" data-tool="triangle" data-tooltip="Triangle" data-tooltip-pos="right" aria-label="Triangle Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          </button>
+          <!-- Diamond -->
+          <button class="btn btn-icon" data-tool="diamond" data-tooltip="Diamond" data-tooltip-pos="right" aria-label="Diamond Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>
+          </button>
+        </div>
+
+        <div class="tool-divider"></div>
+
+        <div class="tool-group">
+          <!-- Text -->
+          <button class="btn btn-icon" data-tool="text" data-tooltip="Text (T)" data-tooltip-pos="right" aria-label="Text Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          </button>
+          <!-- Sticky Note -->
+          <button class="btn btn-icon" data-tool="sticky" data-tooltip="Sticky Note" data-tooltip-pos="right" aria-label="Sticky Note Tool">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M15 3v6h6"/></svg>
+          </button>
+          <!-- Image -->
+          <button class="btn btn-icon" data-tool="image" id="btn-insert-image" data-tooltip="Insert Image" data-tooltip-pos="right" aria-label="Insert Image">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
+          <input type="file" id="image-file-input" accept="image/*" style="display: none;">
+        </div>
+      </nav>
+
+      <!-- Main Canvas Viewport -->
+      <div class="canvas-container" id="canvas-container">
+        <canvas id="main-canvas"></canvas>
+        <div id="text-overlay-container"></div>
+      </div>
+
+      <!-- Contextual Inspector Panel -->
+      <aside id="inspector-panel" class="inspector-panel hidden" aria-label="Properties Inspector">
+        <!-- Inspector Content auto-rendered dynamically -->
+      </aside>
+
+      <!-- Bottom Workspace Controls -->
+      <footer class="bottom-bar" role="toolbar" aria-label="Canvas Navigation Controls">
+        <button id="btn-zoom-out" class="btn btn-icon sm btn-subtle" data-tooltip="Zoom Out (-)" aria-label="Zoom Out">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <span id="zoom-value" style="font-size: var(--font-size-xs); font-weight: 600; width: 44px; text-align: center;">100%</span>
+        <button id="btn-zoom-in" class="btn btn-icon sm btn-subtle" data-tooltip="Zoom In (+)" aria-label="Zoom In">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <div style="width: 1px; height: 16px; background: var(--border-subtle); margin: 0 4px;"></div>
+
+        <button id="btn-fit-view" class="btn btn-subtle sm" data-tooltip="Fit to Content (0)" aria-label="Fit View">
+          <span>Fit</span>
+        </button>
+        <button id="btn-reset-view" class="btn btn-subtle sm" data-tooltip="Reset Zoom" aria-label="Reset View">
+          <span>100%</span>
+        </button>
+
+        <div style="width: 1px; height: 16px; background: var(--border-subtle); margin: 0 4px;"></div>
+
+        <!-- Grid Selector -->
+        <select id="grid-selector" class="btn btn-subtle sm" style="padding-right: 8px;" aria-label="Background Grid Style">
+          <option value="dots">Dot Grid</option>
+          <option value="ruled">Ruled</option>
+          <option value="graph">Graph Paper</option>
+          <option value="blank">Blank</option>
+        </select>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Dialog / Modal Containers -->
+  <div id="modal-container" class="modal-overlay" aria-hidden="true"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Application Main Script (ES Module) -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

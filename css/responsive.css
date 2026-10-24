@@ -1,0 +1,96 @@
+/* Responsive Styling & Media Queries */
+
+/* Tablet Optimization (Max width 1024px) */
+@media (max-width: 1024px) {
+  :root {
+    --inspector-width: 240px;
+  }
+
+  .board-title-input {
+    max-width: 160px;
+  }
+}
+
+/* Mobile Devices Optimization (Max width 768px) */
+@media (max-width: 768px) {
+  :root {
+    --topbar-height: 48px;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .board-title-input {
+    max-width: 120px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Move tool dock to horizontal bar on top or bottom */
+  .tool-dock {
+    top: auto;
+    bottom: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+    padding: 4px;
+    gap: 2px;
+    max-height: none;
+    max-width: calc(100vw - 32px);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .tool-group {
+    flex-direction: row;
+  }
+
+  .tool-divider {
+    width: 1px;
+    height: 24px;
+    margin: 2px 4px;
+  }
+
+  .inspector-panel {
+    top: auto;
+    bottom: 120px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-height: 40vh;
+  }
+
+  .bottom-bar {
+    bottom: 12px;
+    padding: 2px 8px;
+  }
+}
+
+/* Print Stylesheet for High Quality Native PDF/Printing */
+@media print {
+  body {
+    background-color: #ffffff !important;
+  }
+
+  .app-header,
+  .tool-dock,
+  .inspector-panel,
+  .bottom-bar,
+  .toast-container,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  .workspace-area,
+  .canvas-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  #main-canvas {
+    background: transparent !important;
+  }
+}
